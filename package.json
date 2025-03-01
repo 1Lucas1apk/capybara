@@ -1,0 +1,22 @@
+{
+  "name": "newsletteroficial",
+  "version": "1.0.0",
+  "description": "Aplicação que monitora e envia automaticamente no seu servidor Discord as atualizações do newsletter do Felipe Dechamps, utilizando as postagens do usuário 'NewsletterOficial' no TabNews.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "tsc"
+  },
+  "keywords": [
+    "tabnews",
+    "discordbot"
+  ],
+  "author": "1Lucas1apk (Lucas Morais Rodrigues)",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "discord.js": "^14.18.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.8"
+  }
+}
