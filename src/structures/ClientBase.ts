@@ -62,7 +62,6 @@ export class ClientBase extends Client {
     }
     
     sendNewsToChannelByGuild(content, channelIds, roleId) {
-        console.log(channelIds)
         for (const channelId of channelIds) {
             const channel: any = this.channels.cache.get(channelId);
             if (!channel) continue;
@@ -71,11 +70,23 @@ export class ClientBase extends Client {
                 continue;
             } 
             
-            content.url == undefined ? content.url = null : content.url;
-
+            content.url = content.url ?? null;
+    
+            //TabNews tem um limite de 20000 e o Discord Embed somente 4096 na description
+            const LIMIT = 4096;
+            let description = content.content;
+            let extraField = null;
+            if (description.length > LIMIT) {
+                description = description.slice(0, LIMIT) + "...";
+                extraField = {
+                    name: "Conteúdo completo",
+                    value: `O conteúdo é muito extenso. Acesse o [site](${content.url}) para ver o conteúdo completo.`
+                };
+            }
+    
             const embed = new EmbedBuilder()
                 .setTitle(content.title)
-                .setDescription(content.content)
+                .setDescription(description)
                 .setURL(content.url)
                 .setImage(content.image)
                 .setTimestamp(content.published_time)
@@ -84,7 +95,11 @@ export class ClientBase extends Client {
                     iconURL: this.user.displayAvatarURL()
                 })
                 .setColor("#684f3f");
-
+    
+            if (extraField) {
+                embed.addFields([extraField]);
+            }
+    
             const redirectUrl = new ButtonBuilder()
                 .setLabel("Ver notícia")
                 .setStyle(ButtonStyle.Link)
@@ -95,14 +110,15 @@ export class ClientBase extends Client {
                 .setStyle(ButtonStyle.Link)
                 .setURL(content.source_url ?? content.url);
             
-            const row =  new ActionRowBuilder()
+            const row = new ActionRowBuilder()
                 .addComponents(redirectUrl, fonteUrl);
-
+    
             channel.send({ 
                 embeds: [embed],
                 components: [row],
-                content: `Nova notícia de ${content.author} no ar! ` + (roleId ? ` <@&${roleId}>` : "")
-             });
+                content: `Nova notícia de [${content.author}](https://www.tabnews.com.br/${content.author}) no ar! ` + (roleId ? ` <@&${roleId}>` : "")
+            });
         }
-    }  
+    }
+      
 }
