@@ -6,6 +6,7 @@ import {
     ButtonBuilder, 
     ButtonStyle 
 } from 'discord.js';
+import { config } from 'dotenv';
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -138,8 +139,7 @@ module.exports = {
         }
 
         if (subcommand === "panel") {
-            let users = interaction.client.database.get("users") || {};
-            let usernames = Object.keys(users)
+            let usernames = guildConfig.listen
             let userCount = usernames.length
 
             const embed = new EmbedBuilder()
@@ -226,29 +226,27 @@ module.exports = {
             const username = interaction.options.getString("username");
             if (!username) return interaction.reply("❌ **Username inválido.**\nDica: Informe corretamente o username do usuário.");
             
-            let users = interaction.client.database.get(`configs.${guildId}.users`) || {};
-            if (users[username]) {
+            let profiles = interaction.client.database.get(`configs.${guildId}.listen`) || [];
+            if (profiles.includes(username)) {
+               
                 return interaction.reply("ℹ️ **Este usuário já está cadastrado para receber atualizações.**");
             }
             
-            users[username] = {
-                lastPublishIds: [],
-                slug: null,
-            };
-            interaction.client.database.set(`configs.${guildId}.users`, users);
+            profiles.push(username)
+            interaction.client.database.set(`configs.${guildId}.listen`, profiles);
             return interaction.reply(`✅ **Usuário ${username} adicionado com sucesso.**\nDica: Utilize esse comando para acompanhar as atualizações do usuário.`);
         }
         if (subcommand === "removeuser") {
             const username = interaction.options.getString("username");
             if (!username) return interaction.reply("❌ **Username inválido.**\nDica: Informe corretamente o username do usuário.");
             
-            let users = interaction.client.database.get(`configs.${guildId}.users`) || {};
-            if (!users[username]) {
+            let profiles = interaction.client.database.get(`configs.${guildId}.listen`) || [];
+            if (!profiles.includes(profiles)) {
                 return interaction.reply("ℹ️ **Este usuário não está cadastrado para receber atualizações.**");
             }
-            
-            delete users[username];
-            interaction.client.database.set(`configs.${guildId}.users`, users);
+
+            profiles = profiles.filter(profile => profile !== username) || [];
+            interaction.client.database.set(`configs.${guildId}.listen`, profiles);
             return interaction.reply(`✅ **Usuário ${username} removido com sucesso.**\nDica: Utilize esse comando para acompanhar as atualizações do usuário.`);
         }
     }

@@ -17,7 +17,7 @@ function formatUptime(seconds) {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('botinfo')
-        .setDescription('Exibe informações gerais do bot'),
+        .setDescription('🤖 Exibe informações gerais do bot'),
     async run(interaction) {
         const nodeVersion = process.version;
         const discordVersion = require('discord.js').version;
@@ -25,6 +25,7 @@ module.exports = {
         const heapUsedMB = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
         const rssMB = (memoryUsage.rss / 1024 / 1024).toFixed(2);
         const uptime = formatUptime(process.uptime());
+        const ping = interaction.client.ws.ping;
 
         const allConfigs = interaction.client.database.get("configs") || {};
         let globalUserSet = new Set();
@@ -57,9 +58,10 @@ module.exports = {
                 { name: "🧠 Memória (Heap)", value: `${heapUsedMB} MB`, inline: true },
                 { name: "🔍 Memória (RSS)", value: `${rssMB} MB`, inline: true },
                 { name: "⏱️ Uptime", value: uptime, inline: true },
+                { name: "🏓 Ping", value: `${ping}ms`, inline: true },
                 { name: "🗄️ Servidores", value: `${serverCount}`, inline: true },
                 { name: "💬 Comandos", value: `${commandCount}`, inline: true },
-                { name: "🎧 Ouvindo Perfis Globais", value: `${globalUserCount}`, inline: true },
+                { name: "🎧 Ouvindo Perfis", value: `${globalUserCount}`, inline: true },
                 { name: "📚 Dependências", value: `\`\`\`\n${dependenciesList}\n\`\`\`` }
             )
             .setColor("#684f3f")

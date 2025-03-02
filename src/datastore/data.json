@@ -1,33 +1,37 @@
 {
-  "users": {
+  "configs": {
+    "1037795801591721994": {
+      "channel": [
+        "1037799564700291082"
+      ],
+      "listen": [
+        "NewsletterOficial",
+        "clacerda",
+        "clacerda",
+        "clacerda"
+      ]
+    }
+  },
+  "profiles": {
     "NewsletterOficial": {
-      "slug": "tecnica-permite-que-modelos-de-ia-gerem-texto-significativamente-mais-rapido",
       "lastPublishIds": [
         "a11cb0f5-d51e-4f63-ae45-40bdb63af068",
         "ecdf256a-f2f1-4579-9b4b-e0dce8908af0",
         "10d2d037-bbc7-418a-866f-a1a2fa4afe44",
         "6272da8e-2183-45de-a77c-617645ff6efc",
         "f958546b-8207-4a2a-afd3-c3b4f6e5e46b"
-      ]
-    }
-  },
-  "configs": {
-    "1342247933365714957": {
-      "channel": [
-        "1343596111142588436"
       ],
-      "users": {
-        "NewsletterOficial": {
-          "lastPublishIds": [
-            "a11cb0f5-d51e-4f63-ae45-40bdb63af068",
-            "ecdf256a-f2f1-4579-9b4b-e0dce8908af0",
-            "10d2d037-bbc7-418a-866f-a1a2fa4afe44",
-            "6272da8e-2183-45de-a77c-617645ff6efc",
-            "f958546b-8207-4a2a-afd3-c3b4f6e5e46b"
-          ],
-          "slug": "tecnica-permite-que-modelos-de-ia-gerem-texto-significativamente-mais-rapido"
-        }
-      }
+      "slug": "tecnica-permite-que-modelos-de-ia-gerem-texto-significativamente-mais-rapido"
+    },
+    "clacerda": {
+      "lastPublishIds": [
+        "cdd25bd2-16e0-47ce-909c-38d48a132f84",
+        "e96a55fe-d0cc-4188-8c8a-338f83cb104f",
+        "393d45ca-2238-4354-b49c-b0a6b2ebb960",
+        "18cfab63-95c7-4119-b79d-f52fa7bb5333",
+        "4ac53c13-fba3-4090-9d0e-c7dc0176c3da"
+      ],
+      "slug": "cloud-native-e-so-linux-mesmo"
     }
   }
 }

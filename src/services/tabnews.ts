@@ -1,76 +1,117 @@
-export async function tabnews(database, callback) {
-  const guilds = Object.keys(database.get("configs"))
-  
-  for (const guildId of guilds) {
-    setInterval(async () => {
-    let data = database.get(`configs.${guildId}.users`) || {
+type UserData = {
+  lastPublishIds: string[];
+  slug: string | null;
+};
+
+type CallbackData = {
+  title: string;
+  content: string;
+  source_url: string;
+  image: string;
+  url: string;
+  type: string;
+  published_time: Date;
+  modified_time: Date;
+  author: string;
+};
+
+type Database = {
+  get: (path: string) => any;
+  set: (path: string, value: any) => void;
+};
+
+export async function tabnews(
+  database: Database,
+  callback: (data: CallbackData) => void
+) {
+  setInterval(async () => {
+    let profiles: Record<string, UserData> = database.get("profiles") || {
       NewsletterOficial: {
         lastPublishIds: [],
-        slug: null,
-      },
+        slug: null
+      }
+    };
+    
+    const configs = database.get("configs") || {};
+
+    for (const guildId in configs) {
+      const server = configs[guildId];
+      if (Array.isArray(server.listen)) {
+        for (const user of server.listen) {
+          if (!profiles[user]) {
+            profiles[user] = { lastPublishIds: [], slug: null };
+          }
+        }
+      } else if(server.lister == null || server.listen.length == 0) {
+        server.listen = ["NewsletterOficial"]
+        database.set(`configs.${guildId}.listen`, server.listen)
+      }
     }
 
-    Object.keys(data).forEach(async (user) => {
-      let response: any = await fetchNewsFromTabNews(user);
-      if (!response) return;
+    for (const user in profiles) {
+      const response: any = await fetchNewsFromTabNews(user);
+      if (!response) continue;
 
       const newsList = response.pageProps.contentListFound;
-      if (!newsList || newsList.length === 0) {
-        console.log(`Usuário ${user} não tem nenhuma postagem`);
-        return;
-      }
+      if (!newsList || newsList.length === 0) continue;
 
       const newsToCheck = newsList.slice(0, 5);
-
       for (const news of newsToCheck) {
-        if (!data[user].lastPublishIds) data[user].lastPublishIds = [];
-        if (data[user].lastPublishIds.includes(news.id)) continue;
-        
-        console.log(`Nova postagem de ${user}: ${news.title}`);
-        data[user].lastPublishIds.push(news.id);
-        data[user].slug = news.slug;
-        
-        database.set(`configs.${guildId}.users`, data);
+        if (profiles[user].lastPublishIds.includes(news.id)) continue;
 
-        let content: any = await fetchContentNewsFromTabNews(user, news.slug);
+        profiles[user].lastPublishIds.push(news.id);
+        profiles[user].slug = news.slug;
+        database.set("profiles", profiles);
+
+        const content: any = await fetchContentNewsFromTabNews(user, news.slug);
+
         if (!content) continue;
-        console.log("Obtendo conteúdo de:", user, news.slug);
 
-        callback({
+        const callbackData: CallbackData = {
           title: content.pageProps.contentFound.title,
           content: content.pageProps.contentFound.body,
           source_url: content.pageProps.contentFound.source_url,
           image: content.pageProps.contentMetadata.image,
           url: content.pageProps.contentMetadata.url,
           type: content.pageProps.contentMetadata.type,
-          published_time: new Date(content.pageProps.contentMetadata.published_time),
-          modified_time: new Date(content.pageProps.contentMetadata.modified_time),
-          author: content.pageProps.contentMetadata.author,
-        });
+          published_time: new Date(
+            content.pageProps.contentMetadata.published_time
+          ),
+          modified_time: new Date(
+            content.pageProps.contentMetadata.modified_time
+          ),
+          author: content.pageProps.contentMetadata.author
+        };
+
+        callback(callbackData);
       }
-    });
-  }, 20000);
-}
-}
-
-export async function fetchNewsFromTabNews(username) {
-  let data = await fetch(`https://www.tabnews.com.br/_next/data/3pLA3W5RsYsGrkDqxWgmw/pt-BR/${username}/conteudos/1.json`)
-    .then((res) => res.json())
-    .catch((err) => {
-      console.error(err);
-    });
-
-  if (!data) return null;
-  return data;
+    }
+  }, 2000);
 }
 
-export async function fetchContentNewsFromTabNews(username, slug) {
-  let data = await fetch(`https://www.tabnews.com.br/_next/data/3pLA3W5RsYsGrkDqxWgmw/pt-BR/${username}/${slug}.json`)
-    .then((res) => res.json())
-    .catch((err) => {
-      console.error(err);
-    });
+export async function fetchNewsFromTabNews(username: string) {
+  try {
+    const response = await fetch(
+      `https://www.tabnews.com.br/_next/data/3pLA3W5RsYsGrkDqxWgmw/pt-BR/${username}/conteudos/1.json`
+    );
+    return response.ok ? await response.json() : null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
 
-  if (!data) return null;
-  return data;
+export async function fetchContentNewsFromTabNews(
+  username: string,
+  slug: string
+) {
+  try {
+    const response = await fetch(
+      `https://www.tabnews.com.br/_next/data/3pLA3W5RsYsGrkDqxWgmw/pt-BR/${username}/${slug}.json`
+    );
+    return response.ok ? await response.json() : null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
 }

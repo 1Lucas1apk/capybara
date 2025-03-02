@@ -5,13 +5,14 @@ import {
     ClientUser,
     EmbedBuilder,
     ButtonBuilder, ButtonStyle, ActionRowBuilder
- } from "discord.js";
+} from "discord.js";
 import { Database } from "../utils/database";
 import { tabnews } from "../services/tabnews";
 
 export class ClientBase extends Client {
     commands: Map<string, any>;
     database: Database;
+
     constructor() {
         super({
             intents: [
@@ -39,51 +40,50 @@ export class ClientBase extends Client {
 
     listenTabNews() {
         tabnews(this.database, (content) => {
-            this.sendNewsToChannel(content);
+            this.distributeNews(content);
         });
     }
 
-    sendNewsToChannel(content) {
-        const guilds: any = this.database.get("configs")
-        if (!guilds) return;
+    distributeNews(content) {
+        const configs: any = this.database.get("configs");
+        if (!configs) return;
+        for (const guildId of Object.keys(configs)) {
+            const guildConfig = configs[guildId];
+            if (!guildConfig.listen.includes(content.author)) continue;
 
-        for (const guildId of Object.keys(guilds)) {
             const guild = this.guilds.cache.get(guildId);
             if (!guild) continue;
 
-            let channelIds = guilds[guildId].channel;
+            const channelIds = guildConfig.channel;
             if (!channelIds) continue;
 
-            let roleId = guilds[guildId].role;
-            if (!roleId) roleId = null;
+            const roleId = guildConfig.role || null;
 
-            this.sendNewsToChannelByGuild(content, channelIds, roleId);
+            this.sendNewsToGuild(content, channelIds, roleId);
         }
     }
     
-    sendNewsToChannelByGuild(content, channelIds, roleId) {
+    sendNewsToGuild(content, channelIds, roleId) {
         for (const channelId of channelIds) {
             const channel: any = this.channels.cache.get(channelId);
             if (!channel) continue;
             if (channel.type !== 0 && channel.type !== 5) {
-                console.log("Canal não é de texto ou notícias: " + channel.type);
+                console.log(`Canal inválido (${channel.type})`);
                 continue;
-            } 
-            
+            }
+
             content.url = content.url ?? null;
-    
-            //TabNews tem um limite de 20000 e o Discord Embed somente 4096 na description
-            const LIMIT = 4096;
+            const LIMIT = 4093;
             let description = content.content;
             let extraField = null;
             if (description.length > LIMIT) {
                 description = description.slice(0, LIMIT) + "...";
                 extraField = {
-                    name: "Conteúdo completo",
-                    value: `O conteúdo é muito extenso. Acesse o [site](${content.url}) para ver o conteúdo completo.`
+                    name: "Conteúdo Extenso",
+                    value: `Acesse o [site](${content.url}) para ver o conteúdo completo.`
                 };
             }
-    
+
             const embed = new EmbedBuilder()
                 .setTitle(content.title)
                 .setDescription(description)
@@ -95,30 +95,28 @@ export class ClientBase extends Client {
                     iconURL: this.user.displayAvatarURL()
                 })
                 .setColor("#684f3f");
-    
+
             if (extraField) {
                 embed.addFields([extraField]);
             }
-    
+
             const redirectUrl = new ButtonBuilder()
                 .setLabel("Ver notícia")
                 .setStyle(ButtonStyle.Link)
                 .setURL(content.url);
-            
+
             const fonteUrl = new ButtonBuilder()
                 .setLabel("Fonte")
                 .setStyle(ButtonStyle.Link)
                 .setURL(content.source_url ?? content.url);
-            
-            const row = new ActionRowBuilder()
-                .addComponents(redirectUrl, fonteUrl);
-    
+
+            const row = new ActionRowBuilder().addComponents(redirectUrl, fonteUrl);
+
             channel.send({ 
                 embeds: [embed],
                 components: [row],
-                content: `Nova notícia de [${content.author}](https://www.tabnews.com.br/${content.author}) no ar! ` + (roleId ? ` <@&${roleId}>` : "")
+                content: `Nova notícia de [${content.author}](https://www.tabnews.com.br/${content.author})! ` + (roleId ? ` <@&${roleId}>` : "")
             });
         }
     }
-      
 }
