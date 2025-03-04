@@ -204,7 +204,7 @@ module.exports = {
                     "Costumam dormir de **12 a 16 horas por dia**. 😴\n\n" +
                     "Essas características tornam os gatos **companheiros ideais para a vida moderna!** 🏡✨";
 
-                await interaction.client.sendNewsToChannelByGuild({
+                await interaction.client.sendNewsToGuild({
                     title: "Felis catus",
                     content: description,
                     url: "https://google.com",
@@ -228,7 +228,6 @@ module.exports = {
             
             let profiles = interaction.client.database.get(`configs.${guildId}.listen`) || [];
             if (profiles.includes(username)) {
-               
                 return interaction.reply("ℹ️ **Este usuário já está cadastrado para receber atualizações.**");
             }
             
